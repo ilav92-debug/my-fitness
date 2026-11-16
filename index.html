@@ -112,8 +112,8 @@ button,.btn{font:inherit;cursor:pointer}.primary{border:0;background:var(--lime)
 
         <div class="sectionhead"><div><h2>План на сегодня</h2><p>Небольшие шаги каждый день</p></div><span class="pill" id="todayShort"></span></div>
     <div class="grid two">
-      <div class="card"><h3>Тренировка</h3><div class="task"><span class="dot"></span><div><strong>Силовая — всё тело</strong><small>45–50 минут · средняя нагрузка</small></div><span class="tag">ПЛАН</span></div><div class="task"><span class="dot"></span><div><strong>Разминка и растяжка</strong><small>10 минут</small></div></div><div class="notice">Отмечай выполнение подходов в разделе «Тренировки», чтобы поддерживать стрик.</div></div>
-      <div class="card"><h3>Питание</h3><div class="task"><span class="dot"></span><div><strong>Завтрак</strong><small>Овсянка, яйца, ягоды</small></div></div><div class="task"><span class="dot"></span><div><strong>Обед</strong><small>Курица, рис, овощи</small></div></div><div class="task"><span class="dot"></span><div><strong>Ужин</strong><small>Рыба и овощи</small></div></div></div>
+      <div class="card" id="homeWorkoutPlanCard"><h3>Тренировка на сегодня</h3><div id="homeWorkoutPlanContent"></div></div>
+      <div class="card" id="homeNutritionPlanCard"><h3>Питание на сегодня</h3><div id="homeNutritionPlanContent"></div></div>
     </div>
     <div class="sectionhead"><div><h2>Твоя неделя</h2><p>Обзор активности</p></div><button class="secondary smallbtn" onclick="showPage('training')">Открыть план</button></div>
     <div class="week" id="homeWeek"></div>
@@ -402,6 +402,49 @@ function renderMacroCircles(containerId, totals, goals){
 }
 
 function renderHome(){
+  // Динамический план тренировки на сегодня на главной
+  let todayDayIndex = (new Date().getDay() + 6) % 7;
+  let todayDayName = workoutDays[todayDayIndex];
+  let todayWorkouts = data.workoutPlans[todayDayName] || [];
+  let homeWContainer = $('homeWorkoutPlanContent');
+  if(homeWContainer){
+    if(todayWorkouts.length > 0){
+      homeWContainer.innerHTML = todayWorkouts.map(w => `
+        <div class="task">
+          <span class="dot"></span>
+          <div>
+            <strong>${escapeHtml(w.name)}</strong>
+            <small>${escapeHtml(w.setsCount || 3)} подх. · ${escapeHtml(w.reps || w.duration || '')} ${w.weight ? '· вес: ' + escapeHtml(w.weight) : ''}</small>
+          </div>
+          <span class="tag">${escapeHtml(todayDayName.toUpperCase())}</span>
+        </div>
+      `).join('') + `<div class="notice" style="margin-top:12px">День: <b>${todayDayName}</b>. Отмечай выполнение в разделе «Тренировки».</div>`;
+    } else {
+      homeWContainer.innerHTML = `<div class="empty">На сегодня (${todayDayName}) тренировок не запланировано (день отдыха).</div>`;
+    }
+  }
+
+  // Динамический план питания на сегодня на главной
+  let homeNContainer = $('homeNutritionPlanContent');
+  if(homeNContainer){
+    // Синхронизируем день питания с текущим днем недели или выбранным в питании
+    let currentNutrDay = ensureNutritionDay();
+    let foods = currentNutrDay.foods || [];
+    if(foods.length > 0){
+      homeNContainer.innerHTML = foods.map(f => `
+        <div class="task">
+          <span class="dot"></span>
+          <div>
+            <strong>${escapeHtml(f.name)}</strong>
+            <small>${f.calories} ккал · Б ${f.protein} г · Ж ${f.fat} г · У ${f.carbs} г</small>
+          </div>
+        </div>
+      `).join('') + `<div class="muted" style="font-size:11px;margin-top:10px">Рацион из раздела «Питание» (${data.activeNutritionDay})</div>`;
+    } else {
+      homeNContainer.innerHTML = `<div class="empty">В дневник питания на ${data.activeNutritionDay} пока ничего не добавлено. Перейди в раздел «Питание», чтобы записать еду.</div>`;
+    }
+  }
+
     // Питание на главной
   let currentNutrDay = ensureNutritionDay();
   let gHome = currentNutrDay.goals || {};
