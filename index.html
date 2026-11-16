@@ -130,9 +130,9 @@ footer.site b{color:var(--text);font-size:20px;letter-spacing:-.02em}
 <main>
 <section id="hero"><div class="wrap">
 <h1>MY FITNESS: Твои результаты в цифрах и графиках</h1>
-<p class="sub">Персональное веб-приложение для контроля тренировок, питания и трансформации тела. Данные хранятся в Supabase под твоей защитой и доступны только тебе через Row Level Security.</p>
+<p class="sub">Персональное веб-приложение для контроля тренировок, питания и трансформации тела. Твои записи сохраняются в этом браузере на этом устройстве. Для синхронизации между устройствами понадобится облачный аккаунт.</p>
 <div class="cta"><a href="#diary"><button class="btn pri">Начать тренировку →</button></a><a href="#food"><button class="btn">Войти в систему</button></a></div>
-<div class="tags mono"><span>Encryption: <b>AES-256</b></span><span>Database: <b>Supabase</b></span><span>Access: <b>Auth Guard</b></span><span>SLA: <b>99.9% Uptime</b></span><span>Cloud: <b>Edge Functions</b></span><span>Security: <b>Row Level</b></span></div>
+<div class="tags mono"><span>Encryption: <b>AES-256</b></span><span>Storage: <b>Browser</b></span><span>Access: <b>Local</b></span><span>Sync: <b>Single device</b></span></div>
 <div class="live">
  <div class="card status"><header><span class="lime">∿</span><span style="margin-right:auto;margin-left:10px">Живой статус прогресса</span><span class="badge">LIVE</span></header>
  <p id="st">Твоя история начинается сегодня. Введи первый замер, чтобы увидеть магию цифр.</p>
@@ -154,7 +154,7 @@ footer.site b{color:var(--text);font-size:20px;letter-spacing:-.02em}
 
 <section id="diary"><div class="wrap">
 <h2>Тренировочный дневник и история побед</h2>
-<p class="sub" style="margin-top:14px;font-size:13px">Создавай программы, фиксируй подходы и следи за ростом весов в реальном времени. Все данные синхронизируются с твоим профилем Supabase.</p>
+<p class="sub" style="margin-top:14px;font-size:13px">Создавай программы, фиксируй подходы и следи за ростом весов в реальном времени. Записи сохраняются в браузере на этом устройстве.</p>
 <div class="diary">
  <div class="stack">
   <div class="card act"><div class="grid"><i></i><em></em></div><h3>Активность</h3>
@@ -173,7 +173,7 @@ footer.site b{color:var(--text);font-size:20px;letter-spacing:-.02em}
 <section id="charts"><div class="wrap">
 <p class="lime" style="font-weight:700;font-size:13px;letter-spacing:.08em;margin:0 0 10px;text-transform:uppercase">Аналитика трансформации</p>
 <h2>Аналитика трансформации</h2>
-<p class="sub" style="margin-top:14px;font-size:13px">Вес, объёмы и визуальный прогресс. Все изменения на графиках. Данные защищены Row Level Security.</p>
+<p class="sub" style="margin-top:14px;font-size:13px">Вес, объёмы и визуальный прогресс. Все изменения на графиках. Данные сохраняются локально в браузере.</p>
 <div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" data-t="p1">Графики</button><button class="tab" role="tab" aria-selected="false" data-t="p2">Замеры</button><button class="tab" role="tab" aria-selected="false" data-t="p3">Фото-дневник</button></div>
 <div class="panel" id="p1"><svg id="chart" viewBox="0 0 800 220" width="100%" role="img" aria-label="График веса за 8 недель"></svg></div>
 <div class="panel meas" id="p2" hidden><div><small>Грудь</small><b>104 см</b><em>+2</em></div><div><small>Талия</small><b>82 см</b><em>−3</em></div><div><small>Бёдра</small><b>98 см</b><em>+1</em></div><div><small>Бицепс</small><b>38 см</b><em>+1.5</em></div><div><small>Бедро</small><b>60 см</b><em>+1</em></div></div>
@@ -195,20 +195,35 @@ footer.site b{color:var(--text);font-size:20px;letter-spacing:-.02em}
  <div id="meals"></div></div>
 </div></div></section>
 </main>
-<footer class="site"><div class="wrap"><div><b>MY FITNESS</b><br>Дневник тренировок и питания</div><div class="mono" style="font-size:12px">© 2026 · Данные под защитой RLS</div></div></footer>
-<div class="pop" id="pop">Это демонстрация: данные хранятся только на этой странице и пропадут после обновления.</div>
+<footer class="site"><div class="wrap"><div><b>MY FITNESS</b><br>Дневник тренировок и питания</div><div><div class="mono" style="font-size:12px">© 2026 · Локальное хранение данных</div><div id="saveStatus" class="mono" style="font-size:11px;color:#c6ff00;margin-top:8px">Изменения сохраняются автоматически</div></div></div></footer>
+<div class="pop" id="pop">Данные сохраняются в этом браузере. Очистка данных браузера может их удалить; между устройствами они не синхронизируются.</div>
 <button class="demo" id="demo"><i>⚡</i>Режим демонстрации ⌃</button>
 <script>
 const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// Local persistence: data stays in this browser on this device.
+const STORAGE_KEY="my-fitness-v1";
+function readSaved(){
+  try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}")}catch{return {}}
+}
+const saved=readSaved();
+function saveState(){
+  try{
+    localStorage.setItem(STORAGE_KEY,JSON.stringify({ex,meals,goals,photos}));
+    $("#saveStatus") && ($("#saveStatus").textContent="Сохранено ✓");
+  }catch(err){
+    $("#saveStatus") && ($("#saveStatus").textContent="Не удалось сохранить: память браузера заполнена");
+  }
+}
+
 // hero status
 const msgs=["Твоя история начинается сегодня. Введи первый замер, чтобы увидеть магию цифр.","За 8 недель вес вырос на 2,1 кг, а талия уменьшилась на 3 см. Так выглядит рекомпозиция.","Следующая тренировка 12.04: присед 4 x 8. Рабочий вес 140 кг."];
 let mi=0;setInterval(()=>{mi=(mi+1)%3;$("#st").textContent=msgs[mi];[...$("#dots").children].forEach((d,i)=>d.classList.toggle("on",i===mi))},5000);
 // exercises
-let ex=[["Приседания со штангой","4 x 8","140"],["Жим штанги лёжа","3 x 10","115"],["Подтягивания с весом","4 x 12","+15"],["Тяга штанги в наклоне","3 x 12","90"],["Махи гантелями в стороны","4 x 15","14"],["Разгибания на трицепс","3 x 12","35"]];
+let ex=Array.isArray(saved.ex)?saved.ex:[["Приседания со штангой","4 x 8","140"],["Жим штанги лёжа","3 x 10","115"],["Подтягивания с весом","4 x 12","+15"],["Тяга штанги в наклоне","3 x 12","90"],["Махи гантелями в стороны","4 x 15","14"],["Разгибания на трицепс","3 x 12","35"]];
 function drawEx(){$("#exList").innerHTML=ex.map((e,i)=>`<div class="row"><div>${esc(e[0])}<small class="mono">${esc(e[1])}</small></div><div><span class="w">${esc(e[2])} <small>кг</small></span><button data-i="${i}" aria-label="Удалить">×</button></div></div>`).join("")}
-$("#exList").onclick=e=>{const i=e.target.dataset.i;if(i!==undefined){ex.splice(i,1);drawEx()}};
+$("#exList").onclick=e=>{const i=e.target.dataset.i;if(i!==undefined){ex.splice(i,1);drawEx();saveState()}};
 $("#exBtn").onclick=()=>$("#exForm").classList.toggle("open");
-$("#exForm").onsubmit=e=>{e.preventDefault();const f=e.target;ex.push([f.n.value,f.s.value||"3 x 10",f.w.value]);f.n.value="";f.w.value="";drawEx()};
+$("#exForm").onsubmit=e=>{e.preventDefault();const f=e.target;ex.push([f.n.value,f.s.value||"3 x 10",f.w.value]);f.n.value="";f.w.value="";drawEx();saveState()};
 drawEx();
 let t=90;setInterval(()=>{t=t>0?t-1:90;$("#timer").textContent=t},1000);
 // tabs
@@ -222,11 +237,32 @@ wt.forEach((v,i)=>g+=`<circle cx="${px(i)}" cy="${py(v)}" r="4" fill="#0a0a0a" s
 $("#chart").innerHTML=g;
 // photos / pdf
 $("#upBtn").onclick=()=>$("#file").click();
-$("#file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.src=r.result;im.alt="Фото прогресса";$("#noPh")?.remove();$("#photos").append(im);document.querySelector('[data-t=p3]').click()};r.readAsDataURL(f)};
+let photos=Array.isArray(saved.photos)?saved.photos:[];
+function drawPhotos(){
+  $("#photos").innerHTML=photos.length?photos.map((src,i)=>`<img src="${src}" alt="Фото прогресса ${i+1}">`).join(""):'<span class="empty" id="noPh">Фото пока нет. Загрузи первый снимок, чтобы сравнивать формы по неделям.</span>';
+}
+drawPhotos();
+$("#file").onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    const im=new Image();
+    im.onload=()=>{
+      const max=1000,scale=Math.min(1,max/Math.max(im.width,im.height));
+      const canvas=document.createElement("canvas");
+      canvas.width=Math.round(im.width*scale);canvas.height=Math.round(im.height*scale);
+      canvas.getContext("2d").drawImage(im,0,0,canvas.width,canvas.height);
+      photos.push(canvas.toDataURL("image/jpeg",0.72));
+      drawPhotos();saveState();document.querySelector('[data-t=p3]').click();
+    };
+    im.src=r.result;
+  };
+  r.readAsDataURL(f);
+};
 $("#pdf").onclick=()=>window.print();
 // nutrition
-let goals={p:180,f:75,c:250,k:2400};
-let meals=[["Завтрак","08:30",30,15,48,450],["Обед","13:15",45,20,80,680],["Перекус","16:00",12,5,14,150],["Ужин","19:30",40,12,55,520],["Перед сном","22:00",15,6,3,130]];
+let goals=saved.goals&&typeof saved.goals==="object"?saved.goals:{p:180,f:75,c:250,k:2400};
+let meals=Array.isArray(saved.meals)?saved.meals:[["Завтрак","08:30",30,15,48,450],["Обед","13:15",45,20,80,680],["Перекус","16:00",12,5,14,150],["Ужин","19:30",40,12,55,520],["Перед сном","22:00",15,6,3,130]];
 const kc=(p,f,c)=>Math.round(p*4+f*9+c*4);
 function drawN(){
  const s=meals.reduce((a,m)=>({p:a.p+m[2],f:a.f+m[3],c:a.c+m[4],k:a.k+m[5]}),{p:0,f:0,c:0,k:0});
@@ -236,13 +272,13 @@ function drawN(){
  $("#arc").setAttribute("stroke-dasharray",`${Math.min(1,s.k/goals.k)*603.2} 603.2`);
  $("#meals").innerHTML=meals.map((m,i)=>`<div class="meal"><div><b>${esc(m[0])}</b><small class="mono">${esc(m[1])}</small></div><div class="m">Б: ${m[2]}г · Ж: ${m[3]}г · У: ${m[4]}г</div><div class="k">${m[5]} ккал<button data-i="${i}" aria-label="Удалить">×</button></div></div>`).join("");
 }
-$("#meals").onclick=e=>{const i=e.target.dataset.i;if(i!==undefined){meals.splice(i,1);drawN()}};
+$("#meals").onclick=e=>{const i=e.target.dataset.i;if(i!==undefined){meals.splice(i,1);drawN();saveState()}};
 $("#mBtn").onclick=()=>$("#mForm").classList.toggle("open");
 $("#goalBtn").onclick=()=>$("#goalForm").classList.toggle("open");
-$("#mForm").onsubmit=e=>{e.preventDefault();const f=e.target,p=+f.p.value,fa=+f.f.value,c=+f.c.value;meals.push([f.n.value,f.t.value,p,fa,c,kc(p,fa,c)]);meals.sort((a,b)=>a[1]<b[1]?-1:1);f.reset();f.t.value="12:00";drawN()};
-$("#goalForm").onsubmit=e=>{e.preventDefault();const f=e.target;["p","f","c","k"].forEach(k=>{if(+f[k].value>0)goals[k]=+f[k].value});drawN();f.classList.remove("open")};
+$("#mForm").onsubmit=e=>{e.preventDefault();const f=e.target,p=+f.p.value,fa=+f.f.value,c=+f.c.value;meals.push([f.n.value,f.t.value,p,fa,c,kc(p,fa,c)]);meals.sort((a,b)=>a[1]<b[1]?-1:1);f.reset();f.t.value="12:00";drawN();saveState()};
+$("#goalForm").onsubmit=e=>{e.preventDefault();const f=e.target;["p","f","c","k"].forEach(k=>{if(+f[k].value>0)goals[k]=+f[k].value});drawN();f.classList.remove("open");saveState()};
 drawN();
-$("#demo").onclick=()=>$("#pop").classList.toggle("open");
+saveState();\n$("#demo").onclick=()=>$("#pop").classList.toggle("open");
 </script>
 </body>
 </html>
