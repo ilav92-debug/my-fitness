@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MY FITNESS — твои результаты в цифрах и графиках</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a0a;--panel:#151515;--panel2:#101010;--line:#262626;--text:#f4f4f2;--mute:#8a8a86;--lime:#c6ff00;--blue:#3b82f6;--amber:#f5b400;--orange:#ff6a1a;color-scheme:dark;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--text);font:400 16px/1.5 Manrope,system-ui,sans-serif;background-image:radial-gradient(#1c1c1c 1px,transparent 1px);background-size:24px 24px}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+.wrap{max-width:1140px;margin:0 auto;padding:0 20px}
+section{padding:72px 0}
+h1,h2{font-weight:500;letter-spacing:-.03em;line-height:1.05;margin:0}
+h1{font-size:clamp(34px,6vw,64px);text-align:center;font-weight:500}
+h2{font-size:clamp(28px,4vw,44px)}
+.sub{color:var(--mute);max-width:640px}
+.lime{color:var(--lime)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px}
+button{font:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--lime);outline-offset:2px}
+.btn{border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:12px;padding:14px 22px;font-weight:700;font-size:14px}
+.btn.pri{background:var(--lime);color:#0a0a0a;border-color:var(--lime);box-shadow:0 4px 0 #8aad00}
+.btn.pill{border-radius:999px;padding:11px 20px}
+.btn:active{transform:translateY(1px)}
+/* hero */
+#hero{padding-top:40px;text-align:center}
+#hero .sub{margin:24px auto 0;font-size:18px;line-height:1.6}
+.cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin:40px 0 36px}
+.tags{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.tags span{font-size:11px;color:#5d5d5a;border:1px solid var(--line);border-radius:6px;padding:4px 12px;background:var(--panel2)}
+.tags b{font-weight:500;color:#9a9a96}
+.live{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;margin-top:56px;text-align:left}
+.status{padding:28px;border-color:#3a3f1e;background:linear-gradient(160deg,#1a1d0e,#151515 60%);display:flex;flex-direction:column;min-height:270px}
+.status header{display:flex;justify-content:space-between;align-items:center;color:var(--mute);font-weight:700;font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+.badge{background:var(--lime);color:#000;font-size:10px;font-weight:800;padding:1px 6px;border-radius:4px}
+.status p{font-size:22px;line-height:1.4;margin:32px 0;flex:1}
+.status footer{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:18px;font-size:12px;color:#5d5d5a}
+.dots{display:flex;gap:6px}.dots i{width:6px;height:6px;border-radius:9px;background:#333;transition:.3s}.dots i.on{width:22px;background:var(--lime)}
+.quote{padding:28px}
+.who{display:flex;gap:16px;align-items:center}
+.ava{width:50px;height:50px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#555,#1b1b1b);border:1px solid #333;display:grid;place-items:center;font-weight:800}
+.who small{display:block;color:var(--mute);font-size:12px}
+blockquote{margin:28px 0 0;padding-left:20px;border-left:3px solid var(--lime);color:#9a9a96;font-style:italic;line-height:1.8;font-size:15px}
+.kpis{display:grid;grid-template-columns:repeat(6,1fr);gap:16px;margin-top:24px;text-align:left}
+.kpi{padding:18px 20px}
+.kpi b{font:700 30px "JetBrains Mono",monospace;color:var(--lime)}
+.kpi b small{font-size:13px;color:#5f7a00;font-weight:500;margin-left:3px}
+.kpi span{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--mute);margin-top:4px;line-height:1.3}
+.join{margin-top:56px;color:#5d5d5a;font-size:13px}
+.join div{font-size:11px;letter-spacing:.08em;text-transform:uppercase;margin-top:8px}
+/* diary */
+.diary{display:grid;grid-template-columns:350px 1fr;gap:32px;margin-top:40px;align-items:start}
+.stack{display:grid;gap:24px}
+.act{padding:24px}
+.grid{height:140px;margin:0 auto 24px;width:230px;border:1px solid var(--line);background:repeating-linear-gradient(90deg,transparent 0 44px,var(--line) 44px 45px);position:relative}
+.grid i{position:absolute;left:138px;top:94px;width:38px;height:38px;border-radius:6px;background:#2b3300}
+.grid em{position:absolute;left:155px;top:151px;width:5px;height:5px;border-radius:50%;background:var(--lime)}
+h3{font-size:22px;margin:0 0 16px;font-weight:700}
+.days{display:flex;justify-content:space-between;font-size:12px;color:var(--mute)}
+.days div{display:grid;gap:8px;justify-items:center}
+.days i{width:5px;height:5px;border-radius:50%;background:#333}.days .on i{background:var(--lime);box-shadow:0 0 6px var(--lime)}
+.prs{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:24px}
+.prs h3{grid-column:1/-1;margin:0 0 4px}
+.pr{background:#0b0b0b;border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.pr small{display:block;font-size:11px;color:var(--mute)}.pr b{font-size:15px}.pr b span{color:var(--lime)}
+.ex{padding:24px}
+.rest{font:13px "JetBrains Mono",monospace;color:var(--lime);margin-bottom:18px}
+.row{display:flex;justify-content:space-between;align-items:center;padding:16px 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);margin-bottom:12px;transition:border-color .2s}
+.row:hover{border-color:#444}
+.row small{display:block;color:var(--mute);font-size:13px}
+.row .w{font:500 18px "JetBrains Mono",monospace;color:var(--lime)}.row .w small{display:inline;font-size:12px;color:var(--mute)}
+.row button{background:none;border:0;color:#555;margin-left:14px;font-size:18px}
+form.add{display:none;gap:10px;flex-wrap:wrap;margin:6px 0 16px}
+form.add.open{display:flex}
+input,select{background:#0b0b0b;border:1px solid var(--line);color:var(--text);border-radius:10px;padding:11px 14px;font:inherit;font-size:14px;min-width:0}
+form.add input[name=n]{flex:2 1 180px}form.add input{flex:1 1 90px}
+/* analytics */
+.tabs{display:flex;gap:8px;margin:28px 0 0;flex-wrap:wrap}
+.tab{background:var(--panel);border:1px solid var(--line);color:var(--mute);border-radius:10px;padding:10px 20px;font-size:14px}
+.tab[aria-selected=true]{color:var(--text);border-color:var(--lime)}
+.panel{margin-top:0;min-height:210px;padding:24px;border-radius:12px;border:1px solid var(--line);background:var(--panel)}
+.tabs+.panel{margin-top:8px}
+.panel[hidden]{display:none}
+.meas{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.meas div{background:#0b0b0b;border:1px solid var(--line);border-radius:10px;padding:14px}
+.meas small{color:var(--mute);font-size:12px;display:block}.meas b{font:500 20px "JetBrains Mono",monospace}.meas em{font-style:normal;font-size:12px;color:var(--lime);margin-left:6px}
+#photos{display:flex;gap:12px;flex-wrap:wrap}#photos img{height:150px;border-radius:10px;border:1px solid var(--line)}
+.empty{color:var(--mute);font-size:14px}
+.actions{display:flex;gap:16px;margin-top:32px;flex-wrap:wrap}
+/* nutrition */
+#food{text-align:center}
+#food .sub{margin:12px auto 0;font-size:14px}
+#food small.top{font-size:13px;color:var(--mute)}
+.macros{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:40px;text-align:left}
+.macro{padding:20px 24px}
+.macro small{font-size:13px;color:var(--mute)}
+.macro b{display:block;font:700 26px "JetBrains Mono",monospace;margin:2px 0 14px}.macro b span{font-size:.7em;font-weight:500;color:#aaa}
+.bar{height:6px;border-radius:9px;background:#262626;overflow:hidden}.bar i{display:block;height:100%;border-radius:9px;transition:width .5s}
+.nut{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:40px;text-align:left;align-items:center}
+.ring{position:relative;width:216px;height:216px;margin:0 auto 20px}
+.ring svg{transform:rotate(-90deg)}
+.ring div{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring b{font:700 42px "JetBrains Mono",monospace;line-height:1}.ring span{font-size:12px}
+.ringbox{display:grid;justify-items:center;gap:12px}
+.ringbox .btn{width:100%;max-width:356px}
+.meal{display:grid;grid-template-columns:1.2fr 2fr auto;gap:12px;align-items:center;padding:16px 18px;border:1px solid var(--line);border-radius:12px;background:var(--panel);margin-bottom:12px;font-size:13px}
+.meal b{display:block;font-size:13px}.meal small{color:var(--mute)}.meal .k{font-weight:800;text-align:right}
+.meal .m{text-align:center;color:#ccc}
+.meal button{background:none;border:0;color:#555;margin-left:8px}
+form.meal-f{display:none;gap:8px;flex-wrap:wrap;margin-bottom:14px}form.meal-f.open{display:flex}
+form.meal-f input{flex:1 1 70px}form.meal-f input[name=n]{flex:2 1 130px}
+footer.site{border-top:1px solid var(--line);padding:56px 0 80px;color:var(--mute);font-size:14px}
+footer.site .wrap{display:flex;justify-content:space-between;gap:24px;flex-wrap:wrap}
+footer.site b{color:var(--text);font-size:20px;letter-spacing:-.02em}
+.demo{position:fixed;right:max(20px,env(safe-area-inset-right,0px));bottom:calc(20px + env(safe-area-inset-bottom,0px));background:#fff;color:#111;border:0;border-radius:999px;padding:12px 18px;font-weight:700;font-size:14px;display:flex;gap:10px;align-items:center;box-shadow:0 6px 24px #0008;z-index:5}
+.demo i{width:24px;height:24px;border-radius:50%;background:#ff9f1a;display:grid;place-items:center;font-style:normal;font-size:12px}
+.pop{position:fixed;right:20px;bottom:calc(80px + env(safe-area-inset-bottom,0px));background:#fff;color:#111;border-radius:14px;padding:14px 16px;font-size:13px;max-width:260px;display:none;z-index:5;box-shadow:0 6px 24px #0008}.pop.open{display:block}
+@media(max-width:960px){.live,.diary,.nut{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(3,1fr)}.macros{grid-template-columns:1fr 1fr}.nut{gap:32px}}
+@media(max-width:560px){section{padding:48px 0}.kpis{grid-template-columns:1fr 1fr}.macros{grid-template-columns:1fr}.meal{grid-template-columns:1fr auto}.meal .m{grid-column:1/-1;order:3;text-align:left}.cta .btn{flex:1 1 100%}}
+@media print{.demo,.pop,.cta,.actions,form{display:none!important}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+</head>
+<body>
+<main>
+<section id="hero"><div class="wrap">
+<h1>MY FITNESS: Твои результаты в цифрах и графиках</h1>
+<p class="sub">Персональное веб-приложение для контроля тренировок, питания и трансформации тела. Данные хранятся в Supabase под твоей защитой и доступны только тебе через Row Level Security.</p>
+<div class="cta"><a href="#diary"><button class="btn pri">Начать тренировку →</button></a><a href="#food"><button class="btn">Войти в систему</button></a></div>
+<div class="tags mono"><span>Encryption: <b>AES-256</b></span><span>Database: <b>Supabase</b></span><span>Access: <b>Auth Guard</b></span><span>SLA: <b>99.9% Uptime</b></span><span>Cloud: <b>Edge Functions</b></span><span>Security: <b>Row Level</b></span></div>
+<div class="live">
+ <div class="card status"><header><span class="lime">∿</span><span style="margin-right:auto;margin-left:10px">Живой статус прогресса</span><span class="badge">LIVE</span></header>
+ <p id="st">Твоя история начинается сегодня. Введи первый замер, чтобы увидеть магию цифр.</p>
+ <footer><div class="dots" id="dots"><i class="on"></i><i></i><i></i></div><span class="mono">RLS Protected</span></footer></div>
+ <div class="card quote"><div class="who"><div class="ava">AD</div><div><b>Alex Digital</b><small>Lead Architect</small></div></div>
+ <blockquote>«Твои данные — только твои. Я гарантирую архитектурную целостность и приватность каждого байта твоей трансформации в 2026 году.»</blockquote></div>
+</div>
+<div class="kpis">
+ <div class="card kpi"><b>78.4<small>кг</small></b><span>Текущий вес</span></div>
+ <div class="card kpi"><b id="kcalKpi">1840<small>ккал</small></b><span>Съедено сегодня</span></div>
+ <div class="card kpi"><b>12.04</b><span>Следующая тренировка</span></div>
+ <div class="card kpi"><b>92<small>%</small></b><span>Точность рациона</span></div>
+ <div class="card kpi"><b>2.5<small>кг</small></b><span>Прирост в жиме</span></div>
+ <div class="card kpi"><b>14<small>дней</small></b><span>Стрик активности</span></div>
+</div>
+<div class="join">Присоединяйся к 12 000+ атлетов, которые перешли с бумажных дневников на MY FITNESS.
+<div>● Приватное хранение фото &nbsp; ● Авторизация OAuth &nbsp; ● Экспорт PDF 2026</div></div>
+</div></section>
+
+<section id="diary"><div class="wrap">
+<h2>Тренировочный дневник и история побед</h2>
+<p class="sub" style="margin-top:14px;font-size:13px">Создавай программы, фиксируй подходы и следи за ростом весов в реальном времени. Все данные синхронизируются с твоим профилем Supabase.</p>
+<div class="diary">
+ <div class="stack">
+  <div class="card act"><div class="grid"><i></i><em></em></div><h3>Активность</h3>
+   <div class="days"><div class="on">Пн<i></i></div><div>Вт<i></i></div><div class="on">Ср<i></i></div><div class="on">Чт<i></i></div><div>Пт<i></i></div><div>Сб<i></i></div></div></div>
+  <div class="card prs"><h3>Личные рекорды</h3>
+   <div class="pr"><small>Жим лёжа</small><b>120 <span>кг</span></b></div><div class="pr"><small>Становая тяга</small><b>180 <span>кг</span></b></div>
+   <div class="pr"><small>Присед</small><b>145 <span>кг</span></b></div><div class="pr"><small>Армейский жим</small><b>85 <span>кг</span></b></div>
+   <div class="pr"><small>Подъём на бицепс</small><b>45 <span>кг</span></b></div><div class="pr"><small>Жим ногами</small><b>220 <span>кг</span></b></div></div>
+ </div>
+ <div class="card ex"><div class="rest">Время отдыха: <span id="timer">90</span> с</div>
+  <div id="exList"></div>
+  <form class="add" id="exForm"><input name="n" placeholder="Упражнение" required><input name="s" placeholder="Подходы" value="3 x 10"><input name="w" type="number" step="0.5" placeholder="Вес, кг" required><button class="btn pri pill">Сохранить</button></form>
+  <button class="btn pri pill" id="exBtn">Добавить упражнение</button></div>
+</div></div></section>
+
+<section id="charts"><div class="wrap">
+<p class="lime" style="font-weight:700;font-size:13px;letter-spacing:.08em;margin:0 0 10px;text-transform:uppercase">Аналитика трансформации</p>
+<h2>Аналитика трансформации</h2>
+<p class="sub" style="margin-top:14px;font-size:13px">Вес, объёмы и визуальный прогресс. Все изменения на графиках. Данные защищены Row Level Security.</p>
+<div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" data-t="p1">Графики</button><button class="tab" role="tab" aria-selected="false" data-t="p2">Замеры</button><button class="tab" role="tab" aria-selected="false" data-t="p3">Фото-дневник</button></div>
+<div class="panel" id="p1"><svg id="chart" viewBox="0 0 800 220" width="100%" role="img" aria-label="График веса за 8 недель"></svg></div>
+<div class="panel meas" id="p2" hidden><div><small>Грудь</small><b>104 см</b><em>+2</em></div><div><small>Талия</small><b>82 см</b><em>−3</em></div><div><small>Бёдра</small><b>98 см</b><em>+1</em></div><div><small>Бицепс</small><b>38 см</b><em>+1.5</em></div><div><small>Бедро</small><b>60 см</b><em>+1</em></div></div>
+<div class="panel" id="p3" hidden><div id="photos"><span class="empty" id="noPh">Фото пока нет. Загрузи первый снимок, чтобы сравнивать формы по неделям.</span></div></div>
+<div class="actions"><button class="btn pri" id="upBtn" style="box-shadow:none;border-radius:6px">Загрузить фото прогресса</button><input type="file" id="file" accept="image/*" hidden><button class="btn" id="pdf" style="font-weight:500">Экспорт отчёта в PDF</button></div>
+</div></section>
+
+<section id="food"><div class="wrap">
+<small class="top">Твой рацион сегодня</small>
+<h2 style="font-weight:400">Контроль рациона и расчёт итогов</h2>
+<p class="sub">Считай калории и баланс белков, жиров и углеводов автоматически.</p>
+<div class="macros" id="macros"></div>
+<div class="nut">
+ <div class="ringbox"><div class="ring"><svg width="216" height="216" viewBox="0 0 216 216"><circle cx="108" cy="108" r="96" fill="none" stroke="#262626" stroke-width="24"/><circle id="arc" cx="108" cy="108" r="96" fill="none" stroke="#c6ff00" stroke-width="24" stroke-dasharray="0 603" style="transition:stroke-dasharray .6s"/></svg><div><b id="tot">0</b><span>Ккал</span></div></div>
+  <button class="btn pri" id="mBtn" style="padding:11px 24px;border-radius:6px;box-shadow:none;width:auto">Добавить приём пищи</button>
+  <button class="btn" id="goalBtn" style="font-weight:500">Настройка целей</button></div>
+ <div><form class="meal-f" id="goalForm"><input name="p" type="number" placeholder="Белки, г"><input name="f" type="number" placeholder="Жиры, г"><input name="c" type="number" placeholder="Углеводы, г"><input name="k" type="number" placeholder="Ккал"><button class="btn pri pill">Сохранить цели</button></form>
+ <form class="meal-f" id="mForm"><input name="n" placeholder="Приём пищи" required><input name="t" type="time" value="12:00"><input name="p" type="number" placeholder="Б" required><input name="f" type="number" placeholder="Ж" required><input name="c" type="number" placeholder="У" required><button class="btn pri pill">Добавить</button></form>
+ <div id="meals"></div></div>
+</div></div></section>
+</main>
+<footer class="site"><div class="wrap"><div><b>MY FITNESS</b><br>Дневник тренировок и питания</div><div class="mono" style="font-size:12px">© 2026 · Данные под защитой RLS</div></div></footer>
+<div class="pop" id="pop">Это демонстрация: данные хранятся только на этой странице и пропадут после обновления.</div>
+<button class="demo" id="demo"><i>⚡</i>Режим демонстрации ⌃</button>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+// hero status
+const msgs=["Твоя история начинается сегодня. Введи первый замер, чтобы увидеть магию цифр.","За 8 недель вес вырос на 2,1 кг, а талия уменьшилась на 3 см. Так выглядит рекомпозиция.","Следующая тренировка 12.04: присед 4 x 8. Рабочий вес 140 кг."];
+let mi=0;setInterval(()=>{mi=(mi+1)%3;$("#st").textContent=msgs[mi];[...$("#dots").children].forEach((d,i)=>d.classList.toggle("on",i===mi))},5000);
+// exercises
+let ex=[["Приседания со штангой","4 x 8","140"],["Жим штанги лёжа","3 x 10","115"],["Подтягивания с весом","4 x 12","+15"],["Тяга штанги в наклоне","3 x 12","90"],["Махи гантелями в стороны","4 x 15","14"],["Разгибания на трицепс","3 x 12","35"]];
+function drawEx(){$("#exList").innerHTML=ex.map((e,i)=>`<div class="row"><div>${esc(e[0])}<small class="mono">${esc(e[1])}</small></div><div><span class="w">${esc(e[2])} <small>кг</small></span><button data-i="${i}" aria-label="Удалить">×</button></div></div>`).join("")}
+$("#exList").onclick=e=>{const i=e.target.dataset.i;if(i!==undefined){ex.splice(i,1);drawEx()}};
+$("#exBtn").onclick=()=>$("#exForm").classList.toggle("open");
+$("#exForm").onsubmit=e=>{e.preventDefault();const f=e.target;ex.push([f.n.value,f.s.value||"3 x 10",f.w.value]);f.n.value="";f.w.value="";drawEx()};
+drawEx();
+let t=90;setInterval(()=>{t=t>0?t-1:90;$("#timer").textContent=t},1000);
+// tabs
+document.querySelectorAll(".tab").forEach(b=>b.onclick=()=>{document.querySelectorAll(".tab").forEach(x=>x.setAttribute("aria-selected",x===b));["p1","p2","p3"].forEach(id=>$("#"+id).hidden=id!==b.dataset.t)});
+// chart
+const wt=[76.3,76.8,77.0,77.5,77.4,77.9,78.1,78.4],W=800,H=220,pd=34,mn=75.5,mx=79;
+const px=i=>pd+i*(W-2*pd)/(wt.length-1),py=v=>H-pd-(v-mn)/(mx-mn)*(H-2*pd);
+let g="";[76,77,78,79].forEach(v=>g+=`<line x1="${pd}" x2="${W-pd}" y1="${py(v)}" y2="${py(v)}" stroke="#262626"/><text x="4" y="${py(v)+4}" fill="#8a8a86" font-size="11" font-family="JetBrains Mono">${v}</text>`);
+g+=`<polyline fill="none" stroke="#c6ff00" stroke-width="3" stroke-linejoin="round" points="${wt.map((v,i)=>px(i)+","+py(v)).join(" ")}"/>`;
+wt.forEach((v,i)=>g+=`<circle cx="${px(i)}" cy="${py(v)}" r="4" fill="#0a0a0a" stroke="#c6ff00" stroke-width="2"/><text x="${px(i)}" y="${H-8}" fill="#8a8a86" font-size="11" text-anchor="middle" font-family="JetBrains Mono">Н${i+1}</text>`);
+$("#chart").innerHTML=g;
+// photos / pdf
+$("#upBtn").onclick=()=>$("#file").click();
+$("#file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{const im=new Image();im.src=r.result;im.alt="Фото прогресса";$("#noPh")?.remove();$("#photos").append(im);document.querySelector('[data-t=p3]').click()};r.readAsDataURL(f)};
+$("#pdf").onclick=()=>window.print();
+// nutrition
+let goals={p:180,f:75,c:250,k:2400};
+let meals=[["Завтрак","08:30",30,15,48,450],["Обед","13:15",45,20,80,680],["Перекус","16:00",12,5,14,150],["Ужин","19:30",40,12,55,520],["Перед сном","22:00",15,6,3,130]];
+const kc=(p,f,c)=>Math.round(p*4+f*9+c*4);
+function drawN(){
+ const s=meals.reduce((a,m)=>({p:a.p+m[2],f:a.f+m[3],c:a.c+m[4],k:a.k+m[5]}),{p:0,f:0,c:0,k:0});
+ const items=[["Белки",s.p,goals.p,"г","var(--blue)"],["Жиры",s.f,goals.f,"г","var(--amber)"],["Углеводы",s.c,goals.c,"г","var(--orange)"],["Калории",s.k,goals.k,"ккал","var(--lime)"]];
+ $("#macros").innerHTML=items.map(i=>`<div class="card macro"><small>${i[0]}</small><b>${i[1]}<span>/${i[2]} ${i[3]}</span></b><div class="bar"><i style="width:${Math.min(100,i[1]/i[2]*100)}%;background:${i[4]}"></i></div></div>`).join("");
+ $("#tot").textContent=s.k;$("#kcalKpi").innerHTML=s.k+"<small>ккал</small>";
+ $("#arc").setAttribute("stroke-dasharray",`${Math.min(1,s.k/goals.k)*603.2} 603.2`);
+ $("#meals").innerHTML=meals.map((m,i)=>`<div class="meal"><div><b>${esc(m[0])}</b><small class="mono">${esc(m[1])}</small></div><div class="m">Б: ${m[2]}г · Ж: ${m[3]}г · У: ${m[4]}г</div><div class="k">${m[5]} ккал<button data-i="${i}" aria-label="Удалить">×</button></div></div>`).join("");
+}
+$("#meals").onclick=e=>{const i=e.target.dataset.i;if(i!==undefined){meals.splice(i,1);drawN()}};
+$("#mBtn").onclick=()=>$("#mForm").classList.toggle("open");
+$("#goalBtn").onclick=()=>$("#goalForm").classList.toggle("open");
+$("#mForm").onsubmit=e=>{e.preventDefault();const f=e.target,p=+f.p.value,fa=+f.f.value,c=+f.c.value;meals.push([f.n.value,f.t.value,p,fa,c,kc(p,fa,c)]);meals.sort((a,b)=>a[1]<b[1]?-1:1);f.reset();f.t.value="12:00";drawN()};
+$("#goalForm").onsubmit=e=>{e.preventDefault();const f=e.target;["p","f","c","k"].forEach(k=>{if(+f[k].value>0)goals[k]=+f[k].value});drawN();f.classList.remove("open")};
+drawN();
+$("#demo").onclick=()=>$("#pop").classList.toggle("open");
+</script>
+</body>
+</html>
