@@ -41,20 +41,33 @@ button,.btn{font:inherit;cursor:pointer}.primary{border:0;background:var(--lime)
 .workout-summary{display:flex;justify-content:space-between;align-items:center;padding:12px 15px;background:#151a16;border:1px solid var(--line);border-radius:12px;margin-bottom:16px;gap:12px;flex-wrap:wrap}
 
 /* Стили для достижений */
-.achievements-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-bottom:10px}
-.ach-card{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:15px;display:flex;align-items:flex-start;gap:12px;transition:all .2s}
+.achievements-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:10px}
+.ach-card{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:10px 12px;display:flex;align-items:center;gap:10px;transition:all .2s}
 .ach-card.unlocked{border-color:#3d5237;background:linear-gradient(145deg,#1d261b,#181f17)}
 .ach-card.locked{opacity:.55}
-.ach-ico{width:38px;height:38px;border-radius:10px;background:#263222;color:var(--lime);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;border:1px solid #354730}
+.ach-ico{width:28px;height:28px;border-radius:8px;background:#263222;color:var(--lime);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;border:1px solid #354730}
 .ach-card.locked .ach-ico{background:#181d18;color:var(--muted);border-color:var(--line)}
 .ach-body{min-width:0;flex:1}
-.ach-title{font-size:13px;font-weight:700;margin-bottom:2px;display:flex;align-items:center;justify-content:space-between;gap:6px}
-.ach-desc{font-size:11px;color:var(--muted);line-height:1.35}
-.ach-badge{font-size:9px;padding:2px 6px;border-radius:12px;background:#2b3828;color:var(--lime);font-weight:600;white-space:nowrap}
+.ach-title{font-size:12px;font-weight:700;margin-bottom:1px;display:flex;align-items:center;justify-content:space-between;gap:4px}
+.ach-desc{font-size:10px;color:var(--muted);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ach-badge{font-size:8px;padding:1px 4px;border-radius:8px;background:#2b3828;color:var(--lime);font-weight:600;white-space:nowrap}
 .ach-card.locked .ach-badge{background:#222822;color:#7e8a7e}
 
 @media(max-width:900px){.sidebar{width:190px}.stats{grid-template-columns:repeat(2,1fr)}.two,.measuregrid{grid-template-columns:1fr}}
 @media(max-width:650px){.app{display:block}.sidebar{width:100%;padding:14px;border-right:0;border-bottom:1px solid var(--line)}.brand{display:inline-block;margin:0 8px}.subbrand{display:inline-block;margin:0 0 0 7px}.nav{display:flex;overflow:auto;margin-top:12px;gap:4px}.nav button{white-space:nowrap;width:auto;padding:9px 10px;font-size:12px}.navlabel,.sidefoot{display:none}main{padding:24px 15px 45px}.top h1{font-size:25px}.datepill{display:none}.week{grid-template-columns:repeat(4,1fr)}.three{grid-template-columns:1fr}.formrow{grid-template-columns:1fr}}
+
+/* Круговые диаграммы БЖУ */
+.macro-circles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.macro-circle-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px}
+.ring-container{position:relative;width:76px;height:76px;display:flex;align-items:center;justify-content:center}
+.ring-container svg{width:76px;height:76px;transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:#303a31;stroke-width:7}
+.ring-val{fill:none;stroke:var(--lime);stroke-width:7;stroke-linecap:round;transition:stroke-dashoffset .4s ease}
+.ring-text{position:absolute;font-size:13px;font-weight:700;display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.ring-text small{font-size:9px;color:var(--muted);font-weight:400}
+.macro-label{font-size:12px;color:var(--muted);font-weight:600}
+@media(max-width:768px){.macro-circles{grid-template-columns:repeat(2,1fr)}}
+
 </style>
 </head>
 <body>
@@ -84,7 +97,7 @@ button,.btn{font:inherit;cursor:pointer}.primary{border:0;background:var(--lime)
         <div class="statval accent" id="homeStreak">4 <small>дн. подряд</small></div>
         <div class="muted" style="font-size:11px" id="homeStreakNote">Рекорд: 6 дней без пропусков</div>
       </div>
-      <div class="card"><div class="statlabel">До цели</div><div class="statval accent" id="homeToGoal">— <small>кг</small></div><div class="muted" style="font-size:11px" id="homeToGoalNote">Добавь замер и цель</div></div>
+      <div class="card" style="cursor:pointer;" onclick="setGoalPrompt()" title="Нажми, чтобы изменить цель"><div class="statlabel">До цели ⚙️</div><div class="statval accent" id="homeToGoal">— <small>кг</small></div><div class="muted" style="font-size:11px" id="homeToGoalNote">Нажми, чтобы задать цель</div></div>
     </div>
 
     <div class="sectionhead">
@@ -93,7 +106,11 @@ button,.btn{font:inherit;cursor:pointer}.primary{border:0;background:var(--lime)
     </div>
     <div class="achievements-grid" id="homeAchievements"></div>
 
-    <div class="sectionhead"><div><h2>План на сегодня</h2><p>Небольшие шаги каждый день</p></div><span class="pill" id="todayShort"></span></div>
+
+    <div class="sectionhead"><div><h2>Питание за сегодня</h2><p>Твои калории и БЖУ</p></div><button class="secondary smallbtn" onclick="showPage('nutrition')">Открыть питание</button></div>
+    <div class="macro-circles" id="homeMacroCircles"></div>
+
+        <div class="sectionhead"><div><h2>План на сегодня</h2><p>Небольшие шаги каждый день</p></div><span class="pill" id="todayShort"></span></div>
     <div class="grid two">
       <div class="card"><h3>Тренировка</h3><div class="task"><span class="dot"></span><div><strong>Силовая — всё тело</strong><small>45–50 минут · средняя нагрузка</small></div><span class="tag">ПЛАН</span></div><div class="task"><span class="dot"></span><div><strong>Разминка и растяжка</strong><small>10 минут</small></div></div><div class="notice">Отмечай выполнение подходов в разделе «Тренировки», чтобы поддерживать стрик.</div></div>
       <div class="card"><h3>Питание</h3><div class="task"><span class="dot"></span><div><strong>Завтрак</strong><small>Овсянка, яйца, ягоды</small></div></div><div class="task"><span class="dot"></span><div><strong>Обед</strong><small>Курица, рис, овощи</small></div></div><div class="task"><span class="dot"></span><div><strong>Ужин</strong><small>Рыба и овощи</small></div></div></div>
@@ -103,7 +120,45 @@ button,.btn{font:inherit;cursor:pointer}.primary{border:0;background:var(--lime)
   </section>
 
   <section class="page" id="training">
-    <div class="sectionhead"><div><h2>Мой план тренировок</h2><p>Нажимай на подходы во время тренировки, чтобы отмечать выполненные</p></div></div>
+    <div class="sectionhead">
+      <div><h2>Мой план тренировок</h2><p>Выбирай дни занятий и запускай таймер тренировки</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="secondary" id="workoutTimerBtn" onclick="toggleWorkoutTimer()">▶ Начать тренировку</button>
+      </div>
+    </div>
+    
+    <!-- Выбор тренировочных дней -->
+    <div class="card" style="margin-bottom:16px;padding:15px 20px;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:8px">Настройка твоих тренировочных дней недели:</div>
+      <div id="trainingDaysConfig" style="display:flex;gap:8px;flex-wrap:wrap"></div>
+      <div class="muted" style="font-size:11px;margin-top:6px">Нажимай на дни, чтобы сделать их тренировочными или днями отдыха.</div>
+    </div>
+
+    <div id="workoutTimerDisplay" style="display:none;" class="card" style="margin-bottom:16px;padding:15px 20px;background:#182017;border-color:#354a30;">
+      <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px">Общее время тренировки</div>
+          <div style="font-size:22px;font-weight:750;color:var(--lime)" id="timerSeconds">00:00</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="secondary smallbtn" onclick="startRestTimer(30)">30с</button>
+          <button class="secondary smallbtn" onclick="startRestTimer(60)">60с</button>
+          <button class="secondary smallbtn" onclick="startRestTimer(90)">90с</button>
+          <button class="secondary smallbtn" onclick="startRestTimer(120)">120с</button>
+          <div style="display:inline-flex;gap:4px;align-items:center;margin-left:4px">
+            <input type="number" id="customRestInput" placeholder="сек" min="5" max="600" style="width:60px;padding:5px 8px;font-size:12px;height:29px;background:#121713">
+            <button class="secondary smallbtn" onclick="startCustomRest()">OK</button>
+          </div>
+          <button class="primary smallbtn" onclick="stopWorkoutTimer()">Завершить тренировку</button>
+        </div>
+      </div>
+      <!-- Блок обратного отсчета отдыха -->
+      <div id="restTimerBox" style="display:none;margin-top:12px;padding-top:10px;border-top:1px solid var(--line);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:13px;color:var(--lime2)">🔔 Отдых между подходами: <b id="restCountdown" style="font-size:16px">00:00</b></span>
+        <button class="secondary smallbtn" onclick="cancelRestTimer()">Пропустить отдых</button>
+      </div>
+    </div>
+
     <div class="week" id="trainingWeek"></div>
     <div class="card" style="margin-top:16px">
       <div class="sectionhead" style="margin-top:0">
@@ -124,11 +179,12 @@ button,.btn{font:inherit;cursor:pointer}.primary{border:0;background:var(--lime)
     <div class="week" id="nutritionDayTabs" style="margin-top:12px"></div>
     <div class="sectionhead"><div><h2 id="nutritionDayTitle">Понедельник</h2><p id="nutritionDateLabel">План питания на выбранный день</p></div></div>
     <div class="grid stats">
-      <div class="card"><div class="statlabel">Калории</div><div class="statval" id="totalCalories">0 <small>/ 0 ккал</small></div><div class="progress"><span id="calorieProgress" style="width:0%"></span></div></div>
+      <div class="card"><div class="statlabel">Калории</div><div class="statval" id="totalCalories">0 <small>/ 0 ккал</small></div><div class="progress"><span id="caloriesProgress" style="width:0%"></span></div></div>
       <div class="card"><div class="statlabel">Белки</div><div class="statval" id="totalProtein">0 <small>/ 0 г</small></div><div class="progress"><span id="proteinProgress" style="width:0%"></span></div></div>
       <div class="card"><div class="statlabel">Жиры</div><div class="statval" id="totalFat">0 <small>/ 0 г</small></div><div class="progress"><span id="fatProgress" style="width:0%"></span></div></div>
       <div class="card"><div class="statlabel">Углеводы</div><div class="statval" id="totalCarbs">0 <small>/ 0 г</small></div><div class="progress"><span id="carbsProgress" style="width:0%"></span></div></div>
     </div>
+    
     <div class="grid two">
       <div class="card">
         <h3>Цели на день</h3>
@@ -225,9 +281,17 @@ const $=id=>document.getElementById(id);
 const today=new Date(); let selectedDate=iso(today), viewMonth=new Date(today.getFullYear(),today.getMonth(),1);
 const days=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 const titles={home:'Главная',training:'Тренировки',nutrition:'Питание',measure:'Замеры',analytics:'Аналитика',settings:'Настройки'};
-let data=JSON.parse(localStorage.getItem('myfitness_demo')||'{}');
+let data;
+try {
+  data = JSON.parse(localStorage.getItem('myfitness_demo') || '{}');
+} catch (e) {
+  data = {};
+}
 data.measurements=data.measurements||{};
 data.macros=data.macros||{};
+data.nutritionWeeks=data.nutritionWeeks||[{name:'Неделя 1',days:{}}];
+data.activeNutritionWeek=data.activeNutritionWeek??0;
+data.activeNutritionDay=data.activeNutritionDay||'Понедельник';
 data.exerciseLogs=data.exerciseLogs||{
   'Жим лежа': [{date:'2026-10-01',weight:60},{date:'2026-10-15',weight:65},{date:'2026-11-01',weight:70}],
   'Приседания': [{date:'2026-10-02',weight:80},{date:'2026-10-16',weight:85},{date:'2026-11-03',weight:90}]
@@ -262,6 +326,28 @@ data.meals=data.meals||[
 ['Вторник','Завтрак','Греческий йогурт и фрукты'],['Вторник','Обед','Индейка и гречка'],['Вторник','Ужин','Омлет и салат'],
 ['Среда','Завтрак','Творог и ягоды'],['Среда','Обед','Рыба, картофель, овощи'],['Среда','Ужин','Курица и салат']];
 
+function setGoalPrompt() {
+  let cur = prompt('Введите желаемый вес (цель), кг:', data.goal || '');
+  if (cur !== null) {
+    let num = parseFloat(cur.replace(',', '.'));
+    if (!isNaN(num) && num > 0) {
+      data.goal = num;
+      if ($('goalWeight')) $('goalWeight').value = num;
+      save();
+      renderHome();
+      alert('Цель успешно обновлена!');
+    } else if (cur.trim() === '') {
+      delete data.goal;
+      if ($('goalWeight')) $('goalWeight').value = '';
+      save();
+      renderHome();
+      alert('Цель удалена.');
+    } else {
+      alert('Пожалуйста, введите корректное число.');
+    }
+  }
+}
+
 function save(){localStorage.setItem('myfitness_demo',JSON.stringify(data))}
 function iso(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
 function nice(s){return new Date(s+'T12:00:00').toLocaleDateString('ru-RU',{day:'numeric',month:'long',year:'numeric'})}
@@ -273,12 +359,57 @@ function showPage(p){
   if(p==='measure')renderMeasures();
   if(p==='analytics')renderAnalytics();
   if(p==='training')renderWorkouts();
+  if(p==='nutrition')renderNutrition();
 }
 document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>showPage(b.dataset.page)));
 $('todayLabel').textContent=today.toLocaleDateString('ru-RU',{weekday:'long',day:'numeric',month:'long'});
 $('todayShort').textContent=today.toLocaleDateString('ru-RU',{day:'numeric',month:'short'});
 
+function renderMacroCircles(containerId, totals, goals){
+  const container = $(containerId);
+  if(!container) return;
+  
+  const items = [
+    {label: 'Калории', val: totals.calories, goal: goals.calories, unit: 'ккал', color: 'var(--lime)'},
+    {label: 'Белки', val: totals.protein, goal: goals.protein, unit: 'г', color: '#88d452'},
+    {label: 'Жиры', val: totals.fat, goal: goals.fat, unit: 'г', color: '#f5cc59'},
+    {label: 'Углеводы', val: totals.carbs, goal: goals.carbs, unit: 'г', color: '#5ec3f8'}
+  ];
+
+  container.innerHTML = items.map(item => {
+    let goal = item.goal > 0 ? item.goal : (item.label === 'Калории' ? 2000 : 100);
+    let pct = Math.min(100, Math.round((item.val / goal) * 100));
+    let radius = 30;
+    let circ = 2 * Math.PI * radius;
+    let offset = circ - (pct / 100) * circ;
+
+    return `
+      <div class="macro-circle-card">
+        <div class="ring-container">
+          <svg>
+            <circle class="ring-bg" cx="38" cy="38" r="${radius}"></circle>
+            <circle class="ring-val" cx="38" cy="38" r="${radius}" style="stroke-dasharray: ${circ}; stroke-dashoffset: ${offset}; stroke: ${item.color}"></circle>
+          </svg>
+          <div class="ring-text">
+            <span>${item.val}</span>
+            <small>/${goal}</small>
+          </div>
+        </div>
+        <div class="macro-label">${item.label} (${pct}%)</div>
+      </div>
+    `;
+  }).join('');
+}
+
 function renderHome(){
+    // Питание на главной
+  let currentNutrDay = ensureNutritionDay();
+  let gHome = currentNutrDay.goals || {};
+  let fHome = currentNutrDay.foods || [];
+  let totalsHome = {calories:0, protein:0, fat:0, carbs:0};
+  fHome.forEach(f => Object.keys(totalsHome).forEach(k => totalsHome[k] += Number(f[k]||0)));
+
+  renderMacroCircles('homeMacroCircles', totalsHome, gHome);
   // Текущий вес и до цели
   let mKeys=Object.keys(data.measurements).sort();
   let lastWeight=null;
@@ -312,9 +443,20 @@ function renderHome(){
   $('homeStreak').innerHTML=`${currentStreak} <small>дн. подряд</small>`;
   $('homeStreakNote').textContent=`Рекорд: ${bestStreak} дней без пропусков`;
 
-  let weeklyDone=Math.min(4,2+activeWorkoutDays);
-  $('homeWeeklyWorkouts').innerHTML=`${weeklyDone} <small>/ 4</small>`;
-  $('homeWeeklyProgress').style.width=Math.min(100,Math.round(weeklyDone/4*100))+'%';
+  // Считаем сколько тренировочных дней из запланированных (или всего) имеют выполненные подходы
+  let targetTrainingDaysCount = (data.activeTrainingDays && data.activeTrainingDays.length > 0) ? data.activeTrainingDays.length : 4;
+  let completedWorkoutDaysCount = 0;
+  workoutDays.forEach(d => {
+    let items = data.workoutPlans[d] || [];
+    let totalItemsSets = items.reduce((acc,w)=>acc+(w.setsCount||0),0);
+    let doneItemsSets = items.reduce((acc,w)=>acc+(w.completedSets||[]).filter(Boolean).length,0);
+    if(totalItemsSets > 0 && doneItemsSets > 0){
+      completedWorkoutDaysCount++;
+    }
+  });
+  let weeklyDone = Math.min(targetTrainingDaysCount, completedWorkoutDaysCount);
+  $('homeWeeklyWorkouts').innerHTML=`${weeklyDone} <small>/ ${targetTrainingDaysCount}</small>`;
+  $('homeWeeklyProgress').style.width = targetTrainingDaysCount > 0 ? Math.min(100, Math.round(weeklyDone / targetTrainingDaysCount * 100)) + '%' : '0%';
 
   // Поиск самого большого рабочего веса среди логов упражнений и плана тренировок
   let maxWeight=0;
@@ -395,13 +537,14 @@ function renderHome(){
 function renderWeeks(){
  const labels=['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
  $('homeWeek').innerHTML=labels.map((d,i)=>`<div class="day ${i===((today.getDay()+6)%7)?'today':''}"><b>${d}</b><small>${['Тренировка','Активность','Отдых','Тренировка','Отдых','Тренировка','Восстановление'][i]}</small><div class="daydot"></div></div>`).join('');
+ renderTrainingDaysConfig();
  $('trainingWeek').innerHTML=days.map((d,i)=>{
    let full=workoutDays[i];
    let items=data.workoutPlans[full]||[];
    let count=items.length;
    let totalSets=items.reduce((acc,w)=>acc+(w.setsCount||0),0);
    let doneSets=items.reduce((acc,w)=>acc+(w.completedSets||[]).filter(Boolean).length,0);
-   let isTraining=trainingDays.includes(full)||count>0;
+   let isTraining=(data.activeTrainingDays||[]).includes(full)||count>0;
    let subText=count?`${doneSets}/${totalSets} подх.`:(isTraining?'Тренировка':'Отдых');
    return `<button class="day ${selectedWorkoutDay===full?'today':''}" onclick="selectWorkoutDay('${full}')"><b>${d}</b><small>${subText}</small>${isTraining?'<div class="daydot"></div>':''}</button>`;
  }).join('');
@@ -528,14 +671,25 @@ function addNutritionWeek(){
 function selectNutritionWeek(i){data.activeNutritionWeek=i;save();renderNutrition()}
 function selectNutritionDay(day){data.activeNutritionDay=day;save();renderNutrition()}
 function renderNutrition(){
- let week=data.nutritionWeeks[data.activeNutritionWeek];if(!week){data.nutritionWeeks=[{name:'Неделя 1',days:{}}];data.activeNutritionWeek=0;week=data.nutritionWeeks[0]}
+ let week=data.nutritionWeeks[data.activeNutritionWeek];
+ if(!week){data.nutritionWeeks=[{name:'Неделя 1',days:{}}];data.activeNutritionWeek=0;week=data.nutritionWeeks[0]}
  $('nutritionWeekTabs').innerHTML=data.nutritionWeeks.map((w,i)=>`<button class="secondary smallbtn ${i===data.activeNutritionWeek?'active-week':''}" onclick="selectNutritionWeek(${i})">${escapeHtml(w.name)}</button>`).join('');
  $('nutritionDayTabs').innerHTML=days.map((d,i)=>{let full=['Понедельник','Вторник','Среда','Четверг','Пятница','Суббота','Воскресенье'][i];return `<button class="day ${data.activeNutritionDay===full?'today':''}" onclick="selectNutritionDay('${full}')"><b>${d}</b><small>${full}</small></button>`}).join('');
- let day=ensureNutritionDay(),g=day.goals||{},foods=day.foods||[];
- $('nutritionDayTitle').textContent=data.activeNutritionDay;$('nutritionDateLabel').textContent=week.name+' · дневной рацион';
+ let day=ensureNutritionDay(), g=day.goals||{}, foods=day.foods||[];
+ $('nutritionDayTitle').textContent=data.activeNutritionDay;
+ $('nutritionDateLabel').textContent=week.name+' · дневной рацион';
  ['Calories','Protein','Fat','Carbs'].forEach(k=>{$('goal'+k).value=g[k.toLowerCase()]||''});
- let totals={calories:0,protein:0,fat:0,carbs:0};foods.forEach(f=>Object.keys(totals).forEach(k=>totals[k]+=Number(f[k]||0)));
- [['calories','Calories','ккал'],['protein','Protein','г'],['fat','Fat','г'],['carbs','Carbs','г']].forEach(([k,id,u])=>{let goal=Number(g[k]||0),val=Math.round(totals[k]*10)/10;$('total'+id).innerHTML=val+' <small>/ '+(goal||'—')+' '+u+'</small>';$(''+k+'Progress').style.width=(goal?Math.min(100,val/goal*100):0)+'%'});
+ let totals={calories:0,protein:0,fat:0,carbs:0};
+ foods.forEach(f=>Object.keys(totals).forEach(k=>totals[k]+=Number(f[k]||0)));
+ 
+ 
+
+ [['calories','Calories','ккал'],['protein','Protein','г'],['fat','Fat','г'],['carbs','Carbs','г']].forEach(([k,id,u])=>{
+   let goal=Number(g[k]||0),val=Math.round(totals[k]*10)/10;
+   $('total'+id).innerHTML=val+' <small>/ '+(goal||'—')+' '+u+'</small>';
+   $(''+k+'Progress').style.width=(goal?Math.min(100,val/goal*100):0)+'%';
+ });
+ 
  $('foodDiary').innerHTML=foods.length?foods.map((f,i)=>`<div class="task"><span class="dot"></span><div style="flex:1"><strong>${escapeHtml(f.name)}</strong><small>${f.calories} ккал · Б ${f.protein} г · Ж ${f.fat} г · У ${f.carbs} г</small></div><button class="secondary smallbtn" onclick="removeFood(${i})">Убрать</button></div>`).join(''):'Пока ничего не добавлено. Добавь еду, чтобы считать дневные калории и БЖУ.';
 }
 function saveNutritionGoals(){let d=ensureNutritionDay();d.goals={calories:Number($('goalCalories').value)||0,protein:Number($('goalProtein').value)||0,fat:Number($('goalFat').value)||0,carbs:Number($('goalCarbs').value)||0};save();renderNutrition()}
@@ -633,6 +787,116 @@ function saveGoal(){data.goal=$('goalWeight').value;save();renderHome();alert('�
 function exportData(){let blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='my-fitness-data.json';a.click();URL.revokeObjectURL(a.href)}
 function resetDemo(){if(confirm('Удалить все сохранённые данные демо в этом браузере?')){localStorage.removeItem('myfitness_demo');location.reload()}}
 if(data.goal)$('goalWeight').value=data.goal;
+// Таймер тренировки и настройка дней
+let workoutTimerInterval = null;
+let workoutSeconds = 0;
+let isWorkoutActive = false;
+
+function toggleWorkoutTimer(){
+  if(!isWorkoutActive){
+    isWorkoutActive = true;
+    workoutSeconds = 0;
+    $('workoutTimerBtn').textContent = '⏹ Завершить тренировку';
+    $('workoutTimerBtn').style.background = 'var(--danger)';
+    $('workoutTimerBtn').style.color = '#fff';
+    $('workoutTimerDisplay').style.display = 'flex';
+    workoutTimerInterval = setInterval(()=>{
+      workoutSeconds++;
+      let mins = Math.floor(workoutSeconds/60);
+      let secs = workoutSeconds % 60;
+      let hrs = Math.floor(mins/60);
+      mins = mins % 60;
+      let timeStr = (hrs>0?String(hrs).padStart(2,'0')+':':'') + String(mins).padStart(2,'0')+':'+String(secs).padStart(2,'0');
+      $('timerSeconds').textContent = timeStr;
+    }, 1000);
+  } else {
+    stopWorkoutTimer();
+  }
+}
+
+function stopWorkoutTimer(){
+  if(workoutTimerInterval) clearInterval(workoutTimerInterval);
+  workoutTimerInterval = null;
+  isWorkoutActive = false;
+  $('workoutTimerBtn').textContent = '▶ Начать тренировку';
+  $('workoutTimerBtn').style.background = 'var(--lime)';
+  $('workoutTimerBtn').style.color = '#172014';
+  $('workoutTimerDisplay').style.display = 'none';
+  if(workoutSeconds > 30){
+    alert(`Отличная тренировка! Твое время: ${Math.floor(workoutSeconds/60)} мин.`);
+  }
+  workoutSeconds = 0;
+}
+
+data.activeTrainingDays = data.activeTrainingDays || ['Понедельник', 'Среда', 'Четверг', 'Пятница'];
+
+function toggleTrainingDay(dayName){
+  if(data.activeTrainingDays.includes(dayName)){
+    data.activeTrainingDays = data.activeTrainingDays.filter(d=>d!==dayName);
+  } else {
+    data.activeTrainingDays.push(dayName);
+  }
+  save();
+  renderWorkouts();
+  renderHome();
+}
+
+function renderTrainingDaysConfig(){
+  let container = $('trainingDaysConfig');
+  if(!container) return;
+  container.innerHTML = workoutDays.map(d=>{
+    let isActive = data.activeTrainingDays.includes(d);
+    return `<button type="button" class="secondary smallbtn ${isActive?'active-week':''}" onclick="toggleTrainingDay('${d}')">${d} ${isActive?'✓':''}</button>`;
+  }).join('');
+}
+
+// Модифицируем renderWeeks, чтобы учитывать data.activeTrainingDays
+// Заменим функцию renderWeeks или обновим ее вызовы
+// Таймер отдыха между подходами
+let restTimerInterval = null;
+let restSecondsLeft = 0;
+
+function startRestTimer(seconds){
+  if(restTimerInterval) clearInterval(restTimerInterval);
+  restSecondsLeft = seconds;
+  $('restTimerBox').style.display = 'flex';
+  updateRestDisplay();
+  
+  restTimerInterval = setInterval(()=>{
+    restSecondsLeft--;
+    if(restSecondsLeft <= 0){
+      clearInterval(restTimerInterval);
+      restTimerInterval = null;
+      $('restTimerBox').style.display = 'none';
+      // Небольшое звуковое или визуальное оповещение
+      alert('⏰ Время отдыха вышло! Пора делать следующий подход.');
+    } else {
+      updateRestDisplay();
+    }
+  }, 1000);
+}
+
+function updateRestDisplay(){
+  let mins = Math.floor(restSecondsLeft / 60);
+  let secs = restSecondsLeft % 60;
+  $('restCountdown').textContent = String(mins).padStart(2,'0') + ':' + String(secs).padStart(2,'0');
+}
+
+function startCustomRest(){
+  let val = parseInt($('customRestInput').value, 10);
+  if(!isNaN(val) && val > 0){
+    startRestTimer(val);
+    $('customRestInput').value = '';
+  } else {
+    alert('Введите корректное время отдыха в секундах.');
+  }
+}
+
+function cancelRestTimer(){
+  if(restTimerInterval) clearInterval(restTimerInterval);
+  restTimerInterval = null;
+  $('restTimerBox').style.display = 'none';
+}
 renderWeeks();renderWorkouts();renderNutrition();renderMeasures();renderHome();
 </script>
 </body></html>
