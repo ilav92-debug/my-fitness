@@ -132,11 +132,11 @@ footer.site b{color:var(--text);font-size:20px;letter-spacing:-.02em}
 <h1>MY FITNESS: Твои результаты в цифрах и графиках</h1>
 <p class="sub">Персональное веб-приложение для контроля тренировок, питания и трансформации тела. Твои записи сохраняются в этом браузере на этом устройстве. Для синхронизации между устройствами понадобится облачный аккаунт.</p>
 <div class="cta"><a href="#diary"><button class="btn pri">Начать тренировку →</button></a><a href="#food"><button class="btn">Войти в систему</button></a></div>
-<div class="tags mono"><span>Encryption: <b>AES-256</b></span><span>Storage: <b>Browser</b></span><span>Access: <b>Local</b></span><span>Sync: <b>Single device</b></span></div>
+<div class="tags mono"><span>Storage: <b>Browser</b></span><span>Access: <b>Local</b></span><span>Sync: <b>Single device</b></span></div>
 <div class="live">
  <div class="card status"><header><span class="lime">∿</span><span style="margin-right:auto;margin-left:10px">Живой статус прогресса</span><span class="badge">LIVE</span></header>
  <p id="st">Твоя история начинается сегодня. Введи первый замер, чтобы увидеть магию цифр.</p>
- <footer><div class="dots" id="dots"><i class="on"></i><i></i><i></i></div><span class="mono">RLS Protected</span></footer></div>
+ <footer><div class="dots" id="dots"><i class="on"></i><i></i><i></i></div><span class="mono">Локально</span></footer></div>
  <div class="card quote"><div class="who"><div class="ava">AD</div><div><b>Alex Digital</b><small>Lead Architect</small></div></div>
  <blockquote>«Твои данные — только твои. Я гарантирую архитектурную целостность и приватность каждого байта твоей трансформации в 2026 году.»</blockquote></div>
 </div>
@@ -149,7 +149,7 @@ footer.site b{color:var(--text);font-size:20px;letter-spacing:-.02em}
  <div class="card kpi"><b>14<small>дней</small></b><span>Стрик активности</span></div>
 </div>
 <div class="join">Присоединяйся к 12 000+ атлетов, которые перешли с бумажных дневников на MY FITNESS.
-<div>● Приватное хранение фото &nbsp; ● Авторизация OAuth &nbsp; ● Экспорт PDF 2026</div></div>
+<div>● Фото хранятся локально &nbsp; ● Без облачной синхронизации &nbsp; ● Экспорт отчёта в PDF</div></div>
 </div></section>
 
 <section id="diary"><div class="wrap">
@@ -278,7 +278,8 @@ $("#goalBtn").onclick=()=>$("#goalForm").classList.toggle("open");
 $("#mForm").onsubmit=e=>{e.preventDefault();const f=e.target,p=+f.p.value,fa=+f.f.value,c=+f.c.value;meals.push([f.n.value,f.t.value,p,fa,c,kc(p,fa,c)]);meals.sort((a,b)=>a[1]<b[1]?-1:1);f.reset();f.t.value="12:00";drawN();saveState()};
 $("#goalForm").onsubmit=e=>{e.preventDefault();const f=e.target;["p","f","c","k"].forEach(k=>{if(+f[k].value>0)goals[k]=+f[k].value});drawN();f.classList.remove("open");saveState()};
 drawN();
-saveState();\n$("#demo").onclick=()=>$("#pop").classList.toggle("open");
+saveState();
+$("#demo").onclick=()=>$("#pop").classList.toggle("open");
 </script>
 </body>
 </html>
