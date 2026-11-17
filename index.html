@@ -264,6 +264,23 @@ button,.btn{font:inherit;cursor:pointer}.primary{border:0;background:var(--lime)
       <div style="height:260px;position:relative;margin-top:10px"><canvas id="exerciseChart" style="width:100%;height:100%"></canvas></div>
       <div id="exerciseChartHint" class="muted" style="font-size:12px;margin-top:10px">Добавьте результаты по упражнениям, чтобы увидеть график.</div>
     </div>
+
+    <div class="sectionhead" style="margin-top:28px">
+      <div><h2>Трекер добавок и витаминов</h2><p>Отмечай приём и настраивай пуш-уведомления по расписанию</p></div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="secondary smallbtn" id="notifPermBtn" onclick="requestNotifPermission()">🔔 Включить уведомления</button>
+        <button class="secondary smallbtn" onclick="testSupplementNotification()">Тест</button>
+        <button class="primary smallbtn" onclick="addSupplementModal()">＋ Добавить добавку</button>
+      </div>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+        <span style="font-size:13px;color:var(--muted)">Сегодня: <b style="color:var(--text)" id="suppTodayDate"></b> · <span id="notifStatusText" style="font-size:12px">Уведомления: проверка...</span></span>
+        <span class="pill" id="suppProgressPill">Выпито: 0 из 0</span>
+      </div>
+      <div id="supplementsList"></div>
+      <div class="notice" style="margin-top:14px">Для работы уведомлений на iPhone добавь сайт на экран «Домой» через Safari и открой его оттуда, затем нажми «Включить уведомления».</div>
+    </div>
   </section>
 
   <section class="page" id="settings">
@@ -292,6 +309,15 @@ data.macros=data.macros||{};
 data.nutritionWeeks=data.nutritionWeeks||[{name:'Неделя 1',days:{}}];
 data.activeNutritionWeek=data.activeNutritionWeek??0;
 data.activeNutritionDay=data.activeNutritionDay||'Понедельник';
+
+data.supplements = data.supplements || [
+  { id: 'supp_1', name: 'Креатин моногидрат', dose: '5 г', time: 'Утром после завтрака', reminderTime: '09:00' },
+  { id: 'supp_2', name: 'Витамин D3 + K2', dose: '5000 МЕ', time: 'С завтраком', reminderTime: '09:30' },
+  { id: 'supp_3', name: 'Омега-3', dose: '2 капсулы', time: 'В обед', reminderTime: '14:00' }
+];
+data.notifiedSupplements = data.notifiedSupplements || {};
+data.supplementLogs = data.supplementLogs || {};
+
 data.exerciseLogs=data.exerciseLogs||{
   'Жим лежа': [{date:'2026-10-01',weight:60},{date:'2026-10-15',weight:65},{date:'2026-11-01',weight:70}],
   'Приседания': [{date:'2026-10-02',weight:80},{date:'2026-10-16',weight:85},{date:'2026-11-03',weight:90}]
@@ -823,7 +849,277 @@ function renderAnalytics(){
   drawBodyChart();
   renderExerciseDropdown();
   drawExerciseChart();
+  renderSupplements();
 }
+
+function updateNotifUI(){
+  const btn = $('notifPermBtn');
+  const statusEl = $('notifStatusText');
+  if(!btn || !statusEl) return;
+
+  if(!('Notification' in window)){
+    btn.style.display = 'none';
+    statusEl.textContent = 'Браузер не поддерживает системные пуши (работает звуковое/внутреннее напоминание)';
+    statusEl.style.color = 'var(--muted)';
+    return;
+  }
+
+  const perm = Notification.permission;
+  if(perm === 'granted'){
+    btn.textContent = '🔔 Уведомления активны';
+    btn.classList.add('active-week');
+    statusEl.textContent = 'Пуш-уведомления разрешены';
+    statusEl.style.color = 'var(--lime)';
+  } else if(perm === 'denied'){
+    btn.textContent = '🔕 Уведомления заблокированы';
+    btn.classList.remove('active-week');
+    statusEl.textContent = 'Заблокировано в настройках браузера';
+    statusEl.style.color = 'var(--danger)';
+  } else {
+    btn.textContent = '🔔 Включить уведомления';
+    btn.classList.remove('active-week');
+    statusEl.textContent = 'Нажми кнопку справа, чтобы разрешить пуши';
+    statusEl.style.color = 'var(--muted)';
+  }
+}
+
+function requestNotifPermission(){
+  if(!('Notification' in window)){
+    alert('Твой браузер не поддерживает системные пуш-уведомления. На iPhone открой сайт через Safari -> Поделиться -> На экран «Домой».');
+    return;
+  }
+  Notification.requestPermission().then(permission => {
+    updateNotifUI();
+    if(permission === 'granted'){
+      sendSystemNotification('MY FITNESS · Напоминания включены', 'Теперь ты будешь получать уведомления о приёме добавок по расписанию!');
+    } else if(permission === 'denied'){
+      alert('Ты запретил уведомления. Чтобы включить их, разреши уведомления для этого сайта в настройках браузера.');
+    }
+  });
+}
+
+function playBeep(){
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(880, ctx.currentTime);
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.35);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.35);
+  } catch(e){}
+}
+
+function sendSystemNotification(title, body){
+  playBeep();
+  if('Notification' in window && Notification.permission === 'granted'){
+    try {
+      new Notification(title, { body });
+    } catch(e) {
+      console.warn('Notification error:', e);
+    }
+  }
+}
+
+function testSupplementNotification(){
+  const todayStr = iso(new Date());
+  const logsToday = data.supplementLogs[todayStr] || {};
+  const pending = (data.supplements || []).filter(s => !logsToday[s.id]);
+  const text = pending.length
+    ? 'Не забудь выпить: ' + pending.map(s => `${s.name} (${s.dose})`).join(', ')
+    : 'Все добавки на сегодня уже отмечены! Отличная дисциплина.';
+
+  if('Notification' in window && Notification.permission !== 'granted'){
+    Notification.requestPermission().then(perm => {
+      updateNotifUI();
+      if(perm === 'granted'){
+        sendSystemNotification('💊 Напоминание о добавках', text);
+      } else {
+        alert('💊 Тестовое напоминание:\n' + text);
+      }
+    });
+  } else if('Notification' in window && Notification.permission === 'granted'){
+    sendSystemNotification('💊 Напоминание о добавках', text);
+  } else {
+    alert('💊 Тестовое напоминание:\n' + text);
+  }
+}
+
+function checkSupplementReminders(){
+  const now = new Date();
+  const todayStr = iso(now);
+  const hh = String(now.getHours()).padStart(2, '0');
+  const mm = String(now.getMinutes()).padStart(2, '0');
+  const currentHM = `${hh}:${mm}`;
+
+  const logsToday = data.supplementLogs[todayStr] || {};
+  data.notifiedSupplements[todayStr] = data.notifiedSupplements[todayStr] || {};
+
+  (data.supplements || []).forEach(s => {
+    if(!s.reminderTime) return;
+    if(logsToday[s.id]) return; // уже выпито сегодня
+    if(data.notifiedSupplements[todayStr][s.id]) return; // уже напомнили сегодня
+
+    // Срабатываем точно в заданную минуту (или в течение 5 минут после, если вкладка проснулась)
+    const [rH, rM] = s.reminderTime.split(':').map(Number);
+    if(Number.isFinite(rH) && Number.isFinite(rM)){
+      const targetMins = rH * 60 + rM;
+      const nowMins = now.getHours() * 60 + now.getMinutes();
+      if(nowMins >= targetMins && nowMins <= targetMins + 5){
+        data.notifiedSupplements[todayStr][s.id] = true;
+        save();
+        sendSystemNotification(
+          `💊 Пора выпить: ${s.name}`,
+          `Дозировка: ${s.dose}${s.time ? ' (' + s.time + ')' : ''}. Открой трекер и отметь приём!`
+        );
+      }
+    }
+  });
+}
+
+function setSupplementTimeDirect(idx, val){
+  const s = data.supplements[idx];
+  if(!s) return;
+  const trimmed = (val || '').trim();
+  if(!trimmed){
+    delete s.reminderTime;
+  } else {
+    s.reminderTime = trimmed;
+    const todayStr = iso(new Date());
+    if(data.notifiedSupplements[todayStr]) delete data.notifiedSupplements[todayStr][s.id];
+  }
+  save();
+  renderSupplements();
+  checkSupplementReminders();
+}
+
+function editSupplementTime(idx){
+  const s = data.supplements[idx];
+  if(!s) return;
+  const newTime = prompt(`В какое время напоминать про «${s.name}»? (формат ЧЧ:ММ, например 09:30 или оставь пустым чтобы отключить):`, s.reminderTime || '09:00');
+  if(newTime === null) return;
+  const trimmed = newTime.trim();
+  if(trimmed === ''){
+    delete s.reminderTime;
+  } else if(/^\d{1,2}:\d{2}$/.test(trimmed)){
+    const [h, m] = trimmed.split(':').map(Number);
+    if(h >= 0 && h <= 23 && m >= 0 && m <= 59){
+      s.reminderTime = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+      // Сбрасываем флаг уведомления на сегодня, если время переставили на будущее
+      const todayStr = iso(new Date());
+      if(data.notifiedSupplements[todayStr]) delete data.notifiedSupplements[todayStr][s.id];
+    } else {
+      alert('Некорректное время. Укажи часы 00-23 и минуты 00-59.');
+      return;
+    }
+  } else {
+    alert('Неверный формат. Введи время в формате ЧЧ:ММ, например 14:30.');
+    return;
+  }
+  save();
+  renderSupplements();
+  checkSupplementReminders();
+}
+
+function renderSupplements(){
+  updateNotifUI();
+  const todayStr = iso(new Date());
+  if($('suppTodayDate')) $('suppTodayDate').textContent = nice(todayStr);
+  const logsToday = data.supplementLogs[todayStr] || {};
+  const listEl = $('supplementsList');
+  if(!listEl) return;
+
+  const supps = data.supplements || [];
+  let takenCount = 0;
+  supps.forEach(s => { if(logsToday[s.id]) takenCount++; });
+
+  if($('suppProgressPill')) {
+    $('suppProgressPill').textContent = `Выпито: ${takenCount} из ${supps.length}`;
+    $('suppProgressPill').style.borderColor = (supps.length > 0 && takenCount === supps.length) ? 'var(--lime)' : 'var(--line)';
+    $('suppProgressPill').style.color = (supps.length > 0 && takenCount === supps.length) ? 'var(--lime)' : 'var(--muted)';
+  }
+
+  if(!supps.length){
+    listEl.innerHTML = '<div class="empty">Список добавок пуст. Нажми «Добавить добавку», чтобы создать напоминание.</div>';
+    return;
+  }
+
+  listEl.innerHTML = supps.map((s, idx) => {
+    const isTaken = Boolean(logsToday[s.id]);
+    return `
+      <div class="task" style="justify-content:space-between;gap:12px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:200px">
+          <button type="button" class="set-btn ${isTaken ? 'done' : ''}" onclick="toggleSupplement('${s.id}')" style="padding:7px 11px;flex-shrink:0">
+            <span class="set-check">${isTaken ? '✓' : ''}</span>
+            <span>${isTaken ? 'Выпито' : 'Отметить'}</span>
+          </button>
+          <div style="min-width:0">
+            <strong style="${isTaken ? 'text-decoration:line-through;color:var(--muted)' : ''}">${escapeHtml(s.name)}</strong>
+            <small>${escapeHtml(s.dose)}${s.time ? ' · ' + escapeHtml(s.time) : ''}</small>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <label style="display:inline-flex;align-items:center;gap:5px;background:var(--panel2);border:1px solid var(--line);border-radius:9px;padding:4px 8px;font-size:12px;color:var(--text);cursor:pointer" title="Выбрать время напоминания">
+            <span>⏰</span>
+            <input type="time" value="${escapeHtml(s.reminderTime || '')}" onchange="setSupplementTimeDirect(${idx}, this.value)" style="border:0;background:transparent;padding:0;width:auto;color:var(--text);font-size:12px;cursor:pointer">
+          </label>
+          ${s.reminderTime ? `<button type="button" class="secondary smallbtn" onclick="setSupplementTimeDirect(${idx}, '')" title="Отключить время">🔕</button>` : ''}
+          <button type="button" class="secondary smallbtn" onclick="deleteSupplement(${idx})" title="Удалить из списка">✕</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function toggleSupplement(suppId){
+  const todayStr = iso(new Date());
+  data.supplementLogs[todayStr] = data.supplementLogs[todayStr] || {};
+  data.supplementLogs[todayStr][suppId] = !data.supplementLogs[todayStr][suppId];
+  save();
+  renderSupplements();
+}
+
+function addSupplementModal(){
+  const name = prompt('Название добавки или витаминов (например, Креатин, Магний, Цинк):');
+  if(!name || !name.trim()) return;
+  const dose = prompt('Дозировка (например, 5 г, 1 таблетка):', '1 порция') || '';
+  const time = prompt('Комментарий к приёму (например, Утром после еды, Перед сном):', 'Утром') || '';
+  const remInput = prompt('Время пуш-уведомления (формат ЧЧ:ММ, например 09:00):', '09:00') || '';
+  let reminderTime = '';
+  if(/^\d{1,2}:\d{2}$/.test(remInput.trim())){
+    const [h, m] = remInput.trim().split(':').map(Number);
+    if(h >= 0 && h <= 23 && m >= 0 && m <= 59){
+      reminderTime = String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+    }
+  }
+  data.supplements.push({
+    id: 'supp_' + Date.now(),
+    name: name.trim(),
+    dose: dose.trim(),
+    time: time.trim(),
+    reminderTime
+  });
+  save();
+  renderSupplements();
+  checkSupplementReminders();
+}
+
+function deleteSupplement(idx){
+  if(!confirm('Удалить эту добавку из списка?')) return;
+  data.supplements.splice(idx, 1);
+  save();
+  renderSupplements();
+}
+
+// Запускаем фоновую проверку расписания каждые 15 секунд
+setInterval(checkSupplementReminders, 15000);
+document.addEventListener('visibilitychange', () => {
+  if(document.visibilityState === 'visible') checkSupplementReminders();
+});
 
 window.addEventListener('resize',()=>{if($('analytics').classList.contains('active'))renderAnalytics()});
 function saveGoal(){data.goal=$('goalWeight').value;save();renderHome();alert('Цель сохранена')}
@@ -940,6 +1236,21 @@ function cancelRestTimer(){
   restTimerInterval = null;
   $('restTimerBox').style.display = 'none';
 }
-renderWeeks();renderWorkouts();renderNutrition();renderMeasures();renderHome();
+
+// Автосохранение при вводе в любые поля целей питания
+['goalCalories', 'goalProtein', 'goalFat', 'goalCarbs'].forEach(id => {
+  let el = $(id);
+  if(el){
+    el.addEventListener('input', () => {
+      saveNutritionGoals();
+    });
+  }
+});
+
+
+window.addEventListener('beforeunload', save);
+window.addEventListener('pagehide', save);
+
+renderWeeks();renderWorkouts();renderNutrition();renderMeasures();renderHome();checkSupplementReminders();
 </script>
 </body></html>
